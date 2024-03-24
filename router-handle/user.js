@@ -5,13 +5,6 @@ const config =require('../config')
 exports.regUser =(req,res)=>{
     const userinfo =req.body;
     console.log(userinfo);
-    // if(!userinfo.username||!userinfo.password){
-    //     return res.send({status:1,message:'用户名或密码不合法'})
-    // }
-    // db.query('select 1',(err,results)=>{
-    //     if(err) return console.log(err.message);
-    //     console.log(results);
-    // })
     const sqlStr ='select * from ev_users where username=?'
     //账号检验
     db.query(sqlStr,userinfo.username,(err,results)=>{
@@ -21,21 +14,22 @@ exports.regUser =(req,res)=>{
         if(results.length>0){
             return res.send({status:1,message:'用户名重复'})
         }
-    })
-    //密码加密
-    userinfo.password = bcrypt.hashSync(userinfo.password,10)
-    const sql='insert into ev_users set ?'
-    db.query(sql,{username:userinfo.username,password:userinfo.password},(err,results)=>{
+        //密码加密
+        userinfo.password = bcrypt.hashSync(userinfo.password,10)
+        const sql='insert into ev_users set ?'
+        db.query(sql,{username:userinfo.username,password:userinfo.password,permission:userinfo.role},(err,results)=>{
         if(err){
             return res.send({status:1,message:err.message})
         }
         if(results.affectedRows!==1) return res.send({status:1,message:'注册失败'})
         res.send({status:0,message:'注册成功'})
     })
+    })
+    
     
 }
 exports.login = (req,res)=>{
-    const userinfo=req.body
+    const userinfo=req.body;
     console.log(userinfo);
     const sql = 'select * from ev_users where username=?'
     db.query(sql,userinfo.username,(err,results)=>{

@@ -4,9 +4,17 @@ const username = joi.string().alphanum().min(1).max(10).required()
 //密码密码是一个长度在 6 到 12 个字符之间的字符串，且不包含空格
 const password = joi.string().pattern(/^[\S]{6,12}$/).required()
 
-exports.reg_login_schema = {
+const role = joi.string().valid('audit', 'manage').required()
+exports.login_schema = {
     body: {
         username,
         password,
+    },
+}
+exports.reg_schema = {
+    body: {
+        username,
+        password,
+        role,
     },
 }
