@@ -1,23 +1,26 @@
 const express = require('express')
 const app=express()
-const userRouter =require('./router/router.js')
+const backuserRouter =require('./router/backuser.js')
 const userinfoRouter = require('./router-handle/userinfo.js')
 const taskRouter = require('./router/task')
+const userRouter =require('./router/user.js')
 const Joi = require('joi')
 const config = require('./config')
 const expressJWT = require('express-jwt')
 const cors =require('cors')
 // CORS配置
 const corsOptions = {
-    origin: 'http://localhost:5173', // 允许跨域请求的来源
+    origin: '*', // 允许跨域请求的来源
     methods: ['GET', 'POST'], // 允许的HTTP方法
     allowedHeaders: ['Content-Type', 'Authorization'], // 允许的请求头
     credentials: true // 允许发送凭证（如cookies）
 }
 app.use(cors(corsOptions))
-app.use(expressJWT({secret:config.jwtSecretKey}).unless({path:[/^\/api/]}))
+app.use(expressJWT({ secret: config.jwtSecretKey }).unless({ path: [/^\/(api|back)/] }))
 app.use(express.urlencoded({extended:false}))
-app.use('/api',userRouter)
+app.use('/public/', express.static('./public/'))
+app.use('/back',backuserRouter)
+app.use('/api', userRouter)
 app.use('/my',userinfoRouter)
 app.use('/my/task',taskRouter)
 app.use((err,req,res,next)=>{

@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const user_handler = require('../router-handle/user')
+const user_handler = require('../router-handle/backuser')
 const  expressJoi  = require('@escook/express-joi')
 const {login_schema,reg_schema}= require('../schema/user')
 
