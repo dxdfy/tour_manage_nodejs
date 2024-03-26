@@ -1,11 +1,12 @@
 const db = require('../db/index')
-
+const bcrypt =require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const config = require('../config')
 const fs = require('fs');
 
 
 exports.login = (req, res) => {
+
     const userinfo = req.body
     console.log(userinfo)
     const sql = 'select * from ev_users where `username`=?'
@@ -14,8 +15,8 @@ exports.login = (req, res) => {
         if (err) return res.send({status:1,message:err.message})
         if (results.length !== 1) return res.send({status:1,message:'登录失败'})
 
-        const compareResult = userinfo.password === results[0].password
-        if (!compareResult) {
+        const compare = bcrypt.compareSync(userinfo.password,results[0].password)
+        if (!compare) {
             return res.send({status:1,message:'登录失败！密码错误'})
         }
         const user = { ...results[0], password: '', user_pic: '' }
@@ -62,7 +63,7 @@ exports.register = (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     const tempFilePath = req.file.path;
-    const avatarUrl = 'http://127.0.0.1:3007/public/upload/' + req.file.filename;
+    const avatarUrl = 'http://192.168.1.103:3007/public/upload/' + req.file.filename;
 
     // 将临时文件保存到指定目录
     const savedFilePath = './public/saved/' + req.file.filename;
@@ -83,8 +84,9 @@ exports.register = (req, res) => {
             if (result.length > 0) {
                 return res.send({status:1,message:'用户名被占用，请更换其它用户名！'})
             } else {
-                const sqlStr = `INSERT INTO ev_users (username,password, avatar) VALUES ('${username}','${password}','${avatarUrl}')`;
-                db.query(sqlStr, [username, password, avatarUrl], (err, result) => {
+                const secret_password = bcrypt.hashSync(password,10);
+                const sqlStr = `INSERT INTO ev_users (username,password, avatar) VALUES ('${username}','${secret_password}','${avatarUrl}')`;
+                db.query(sqlStr, [username, secret_password, avatarUrl], (err, result) => {
                     if (err) throw err;
                     res.json({ path: avatarUrl });
                 });

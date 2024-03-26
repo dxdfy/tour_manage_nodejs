@@ -16,29 +16,9 @@ exports.getTaskCates = (req, res) => {
     })
 }
 exports.addTask = (req, res) => {
-    const sql = 'select * from ev_tasks where name=? or xiangqing =?'
     console.log(req.body)
-    db.query(sql, [req.body.name, req.body.xiangqing], (err, results) => {
-        if (err) {
-            return res.send({
-                status: 1,
-                message: err.message
-            })
-        }
-        if (results.length === 2) return res.send({
-            status: 1,
-            message: '名称与详情重复'
-        })
-        if (results.length === 1 && results[0].name === req.body.name) return res.send({
-            status: 1,
-            message: '名称重复'
-        })
-        if (results.length === 1 && results[0].xiangqing === req.body.xiangqing) return res.send({
-            status: 1,
-            message: '详情重复'
-        })
-        const sql2 = `insert into ev_tasks set ?`
-        db.query(sql2, req.body, (err, results) => {
+    const sql = `insert into ev_tasks set ?`
+        db.query(sql, req.body, (err, results) => {
 
             if (err) return res.send({
                 status: 1,
@@ -47,15 +27,14 @@ exports.addTask = (req, res) => {
 
             if (results.affectedRows !== 1) return res.send({
                 status: 1,
-                message: '新增任务失败'
+                message: '新增游记失败'
             })
 
             res.send({
-                status: 1,
-                message: '新增任务成功'
+                status: 0,
+                message: '新增游记成功'
             })
         })
-    })
 
 }
 
