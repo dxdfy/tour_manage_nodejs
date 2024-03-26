@@ -5,7 +5,7 @@ const config =require('../config')
 exports.regUser =(req,res)=>{
     const userinfo =req.body;
     console.log(userinfo);
-    const sqlStr ='select * from ev_users where username=?'
+    const sqlStr ='select * from ev_back_users where username=?'
     //账号检验
     db.query(sqlStr,userinfo.username,(err,results)=>{
         if(err){
@@ -16,7 +16,7 @@ exports.regUser =(req,res)=>{
         }
         //密码加密
         userinfo.password = bcrypt.hashSync(userinfo.password,10)
-        const sql='insert into ev_users set ?'
+        const sql='insert into ev_back_users set ?'
         db.query(sql,{username:userinfo.username,password:userinfo.password,permission:userinfo.role},(err,results)=>{
         if(err){
             return res.send({status:1,message:err.message})
@@ -31,7 +31,7 @@ exports.regUser =(req,res)=>{
 exports.login = (req,res)=>{
     const userinfo=req.body;
     console.log(userinfo);
-    const sql = 'select * from ev_users where username=?'
+    const sql = 'select * from ev_back_users where username=?'
     db.query(sql,userinfo.username,(err,results)=>{
         if(err){
             return res.send({status:1,message:err.message})

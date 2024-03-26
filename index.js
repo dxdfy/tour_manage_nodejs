@@ -16,7 +16,7 @@ const corsOptions = {
     credentials: true // 允许发送凭证（如cookies）
 }
 app.use(cors(corsOptions))
-app.use(expressJWT({ secret: config.jwtSecretKey }).unless({ path: [/^\/(api|back)/] }))
+app.use(expressJWT({ secret: config.jwtSecretKey }).unless({ path: [/^\/(api|back)/, /^\/public\//] }));
 app.use(express.urlencoded({extended:false}))
 app.use('/public/', express.static('./public/'))
 app.use('/back',backuserRouter)
