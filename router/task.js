@@ -6,11 +6,23 @@ const task_handler = require('../router-handle/task')
 
 const expressJoi=require('@escook/express-joi')
 
-const {add_task_schema, pass_schema, reject_schema} =require('../schema/task')
+const { pass_schema, reject_schema} =require('../schema/task')
 
 const { delete_schema } = require('../schema/task')
 
-router.post('/add',expressJoi(add_task_schema),task_handler.addTask)
+const multer = require('multer');
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, './public/upload')
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + '-' + file.originalname)
+    }
+})
+const upload = multer({ storage: storage })
+
+router.post('/add',upload.single('file'),task_handler.add_Task)
 
 router.get('/cates',task_handler.getTaskCates)
 
