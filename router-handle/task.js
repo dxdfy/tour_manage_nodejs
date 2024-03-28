@@ -16,6 +16,22 @@ exports.getTaskCates = (req, res) => {
     })
 }
 
+exports.getTaskByUser = (req, res) => {
+    const username =req.body.username;
+    const sql = 'select * from ev_tasks where name = ?'
+    db.query(sql, username, (err, results) => {
+        if (err) return res.send({
+            status: 1,
+            message: err.message
+        })
+        res.send({
+            status: 0,
+            message: '获取用户游记成功',
+            data: results,
+        })
+    })
+}
+
 exports.add_Task = (req, res) => {
     console.log('Received file:', req.file);
     console.log('Received body:', req.body);
@@ -23,7 +39,7 @@ exports.add_Task = (req, res) => {
     const username = req.body.username;
     const title = req.body.titleValue;
     const text = req.body.textValue;
-    const avatarUrl = 'http://192.168.1.103:3007/public/upload/' + req.file.filename;
+    const avatarUrl = 'http:// 192.168.1.107/public/upload/' + req.file.filename;
 
 
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';

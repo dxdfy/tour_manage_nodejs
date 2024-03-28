@@ -26,6 +26,8 @@ router.post('/add',upload.single('file'),task_handler.add_Task)
 
 router.get('/cates',task_handler.getTaskCates)
 
+router.post('/cates',task_handler.getTaskByUser)
+
 router.get('/delete/:id', expressJoi(delete_schema),task_handler.deleteById)
 
 router.post('/reject',expressJoi(reject_schema), task_handler.rejectById)
