@@ -32,6 +32,48 @@ exports.getTaskByUser = (req, res) => {
     })
 }
 
+exports.remove_pics = (req,res) => {
+    console.log('Received body:', req.body);
+    const { username, title, files } = req.body;
+    const filesArray = files.split(',');
+    console.log('Received fileArray:', filesArray);
+    const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name = ?';
+    db.query(sqlSelect, [title, username], (err, result) => {
+        if (err) {
+            return res.send({
+                status: 1,
+                message: err.message
+            });
+        } else {
+            if (result.length > 0) {
+                const { pic_urls } = result[0];
+                
+                // 将 filesArray 中的 URL 从 pic_urls 中移除
+                const updatedPicUrls = pic_urls.filter(url => !filesArray.includes(url));
+                console.log('新的urls',updatedPicUrls);
+                // 更新数据库中相应数据行的 pic_urls 字段
+                const sqlUpdate = 'UPDATE ev_tasks SET pic_urls = ? WHERE title = ? AND name = ?';
+                db.query(sqlUpdate, [JSON.stringify(updatedPicUrls), title, username], (err, result) => {
+                    if (err) {
+                        return res.send({
+                            status: 1,
+                            message: err.message
+                        });
+                    }
+
+                    return res.send({
+                        status: 0,
+                        message: '删除游记图片成功'
+                    });
+                    
+                });
+            } else {
+                res.status(404).send('Data not found');
+            }
+        }
+    });
+}
+
 exports.add_Task = (req, res) => {
     console.log('Received file:', req.file);
     console.log('Received body:', req.body);
@@ -39,7 +81,7 @@ exports.add_Task = (req, res) => {
     const username = req.body.username;
     const title = req.body.titleValue;
     const text = req.body.textValue;
-    const avatarUrl = 'http:// 192.168.1.107/public/upload/' + req.file.filename;
+    const avatarUrl = 'http://192.168.1.107/public/upload/' + req.file.filename;
 
 
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';

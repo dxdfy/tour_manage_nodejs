@@ -24,6 +24,8 @@ const upload = multer({ storage: storage })
 
 router.post('/add',upload.single('file'),task_handler.add_Task)
 
+router.post('/remove',task_handler.remove_pics)
+
 router.get('/cates',task_handler.getTaskCates)
 
 router.post('/cates',task_handler.getTaskByUser)
