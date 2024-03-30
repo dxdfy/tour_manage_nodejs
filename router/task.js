@@ -4,9 +4,9 @@ const router = express.Router()
 
 const task_handler = require('../router-handle/task')
 
-const expressJoi=require('@escook/express-joi')
+const expressJoi = require('@escook/express-joi')
 
-const { pass_schema, reject_schema} =require('../schema/task')
+const { pass_schema, reject_schema } = require('../schema/task')
 
 const { delete_schema } = require('../schema/task')
 
@@ -22,18 +22,20 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage: storage })
 
-router.post('/add',upload.single('file'),task_handler.add_Task)
+router.post('/add', upload.single('file'), task_handler.add_Task)
 
-router.post('/remove',task_handler.remove_pics)
+router.post('/remove', task_handler.remove_pics)
 
-router.get('/cates',task_handler.getTaskCates)
+router.get('/cates', task_handler.getTaskCates)
 
-router.post('/cates',task_handler.getTaskByUser)
+router.get('/passcates', task_handler.getPassTaskCates)
 
-router.get('/delete/:id', expressJoi(delete_schema),task_handler.deleteById)
+router.post('/cates', task_handler.getTaskByUser)
 
-router.post('/reject',expressJoi(reject_schema), task_handler.rejectById)
+router.get('/delete/:id', expressJoi(delete_schema), task_handler.deleteById)
 
-router.get('/pass/:id',expressJoi(pass_schema), task_handler.passById)
+router.post('/reject', expressJoi(reject_schema), task_handler.rejectById)
 
-module.exports=router
+router.get('/pass/:id', expressJoi(pass_schema), task_handler.passById)
+
+module.exports = router

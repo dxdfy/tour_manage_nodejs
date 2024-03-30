@@ -1,5 +1,5 @@
 const db = require('../db/index')
-const bcrypt =require('bcryptjs')
+const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const config = require('../config')
 const fs = require('fs');
@@ -8,20 +8,20 @@ const fs = require('fs');
 exports.login = (req, res) => {
 
     const userinfo = req.body
-    console.log(userinfo)
+    // console.log(userinfo)
     const sql = 'select * from ev_users where `username`=?'
     db.query(sql, userinfo.username, (err, results) => {
-        console.log(results)
-        if (err) return res.send({status:1,message:err.message})
-        if (results.length !== 1) return res.send({status:1,message:'登录失败'})
+        // console.log(results)
+        if (err) return res.send({ status: 1, message: err.message })
+        if (results.length !== 1) return res.send({ status: 1, message: '登录失败' })
 
-        const compare = bcrypt.compareSync(userinfo.password,results[0].password)
+        const compare = bcrypt.compareSync(userinfo.password, results[0].password)
         if (!compare) {
-            return res.send({status:1,message:'登录失败！密码错误'})
+            return res.send({ status: 1, message: '登录失败！密码错误' })
         }
         const user = { ...results[0], password: '', user_pic: '' }
         const tokenStr = jwt.sign(user, config.jwtSecretKey, { expiresIn: config.expiresIn })
-        console.log('ok')
+        // console.log('ok')
         res.send({
             status: 0,
             message: '登录成功',
@@ -57,13 +57,13 @@ exports.login = (req, res) => {
 //     })
 // }
 exports.register = (req, res) => {
-    console.log('Received file:', req.file);
-    console.log('Received body:', req.body);
+    // console.log('Received file:', req.file);
+    // console.log('Received body:', req.body);
 
     const username = req.body.username;
     const password = req.body.password;
     const tempFilePath = req.file.path;
-    const avatarUrl = 'http://192.168.1.103:3007/public/upload/' + req.file.filename;
+    const avatarUrl = 'http://127.0.0.1:3007/public/upload/' + req.file.filename;
 
     // 将临时文件保存到指定目录
     const savedFilePath = './public/saved/' + req.file.filename;
@@ -82,15 +82,15 @@ exports.register = (req, res) => {
         } else {
             // 检查是否有匹配的openId
             if (result.length > 0) {
-                return res.send({status:1,message:'用户名被占用，请更换其它用户名！'})
+                return res.send({ status: 1, message: '用户名被占用，请更换其它用户名！' })
             } else {
-                const secret_password = bcrypt.hashSync(password,10);
+                const secret_password = bcrypt.hashSync(password, 10);
                 const sqlStr = `INSERT INTO ev_users (username,password, avatar) VALUES ('${username}','${secret_password}','${avatarUrl}')`;
                 db.query(sqlStr, [username, secret_password, avatarUrl], (err, result) => {
                     if (err) throw err;
                     res.json({ path: avatarUrl });
                 });
-                console.log("插入新路径", avatarUrl);
+                // console.log("插入新路径", avatarUrl);
             }
         }
     });

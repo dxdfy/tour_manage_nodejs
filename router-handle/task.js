@@ -16,8 +16,105 @@ exports.getTaskCates = (req, res) => {
     })
 }
 
+// exports.getPassTaskCates = (req, res) => {
+//     console.log('1')
+//     const sql = 'select * from ev_tasks where status="已通过" and is_delete=0 order by id asc';
+//     db.query(sql, async (err, tasksResults) => {
+//         if (err) {
+//             return res.send({
+//                 status: 1,
+//                 message: err.message
+//             });
+//         }
+
+//         // 用于存储所有查询到的任务及对应的 avatar
+//         const tasksWithAvatar = [];
+
+//         // 对每个任务进行处理
+//         for (const task of tasksResults) {
+//             // 在 ev_users 表中查询对应的 avatar
+//             const userSql = `SELECT avatar FROM ev_users WHERE name='${task.name}'`;
+//             try {
+//                 const userResults = await db.query(userSql);
+//                 if (userResults.length > 0) {
+//                     // 如果找到了对应的用户，则将 avatar 添加到任务信息中
+//                     const taskWithAvatar = {
+//                         ...task,
+//                         avatar: userResults[0].avatar
+//                     };
+//                     tasksWithAvatar.push(taskWithAvatar);
+//                 }
+//             } catch (error) {
+//                 console.error('查询用户信息失败：', error.message);
+//             }
+//         }
+
+//         // 返回结果
+//         res.send({
+//             status: 0,
+//             message: '获取任务成功',
+//             data: tasksWithAvatar,
+//         });
+//     });
+// };
+const mysql = require('mysql2/promise');
+
+exports.getPassTaskCates = async (req, res) => {
+    console.log('1')
+    const page = req.query.page; // Default page is 0
+    const count = req.query.count; // Default count is 10
+    console.log(page)
+    console.log(count)
+    try {
+        const connection = await mysql.createConnection({
+            host: '127.0.0.1',
+            user: 'root',
+            password: 'admin123',
+            database: 'my_db_01',
+        });
+        const offset = page * count;
+        const sql = `select * from ev_tasks where status="已通过" and is_delete=0 order by id asc LIMIT ${offset}, ${count}`;
+        const [tasksResults] = await connection.query(sql);
+        // 用于存储所有查询到的任务及对应的 avatar
+        const tasksWithAvatar = [];
+
+        // 对每个任务进行处理
+        for (const task of tasksResults) {
+            // 在 ev_users 表中查询对应的 avatar
+            const userSql = `SELECT avatar FROM ev_users WHERE username='${task.name}'`;
+            const [userResults] = await connection.query(userSql);
+            if (userResults.length > 0) {
+                // 如果找到了对应的用户，则将 avatar 添加到任务信息中
+                const taskWithAvatar = {
+                    ...task,
+                    avatar: userResults[0].avatar
+                };
+                tasksWithAvatar.push(taskWithAvatar);
+            }
+        }
+        console.log(tasksWithAvatar)
+        // 返回结果
+        res.send({
+            status: 0,
+            message: '获取任务成功',
+            data: tasksWithAvatar,
+        });
+    } catch (error) {
+        console.error('查询数据库失败：', error.message);
+        res.send({
+            status: 1,
+            message: '查询数据库失败',
+        });
+    }
+};
+
+
+
+
+
+
 exports.getTaskByUser = (req, res) => {
-    const username =req.body.username;
+    const username = req.body.username;
     const sql = 'select * from ev_tasks where name = ?'
     db.query(sql, username, (err, results) => {
         if (err) return res.send({
@@ -32,11 +129,11 @@ exports.getTaskByUser = (req, res) => {
     })
 }
 
-exports.remove_pics = (req,res) => {
-    console.log('Received body:', req.body);
+exports.remove_pics = (req, res) => {
+    // console.log('Received body:', req.body);
     const { username, title, files } = req.body;
     const filesArray = files.split(',');
-    console.log('Received fileArray:', filesArray);
+    // console.log('Received fileArray:', filesArray);
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name = ?';
     db.query(sqlSelect, [title, username], (err, result) => {
         if (err) {
@@ -47,10 +144,10 @@ exports.remove_pics = (req,res) => {
         } else {
             if (result.length > 0) {
                 const { pic_urls } = result[0];
-                
+
                 // 将 filesArray 中的 URL 从 pic_urls 中移除
                 const updatedPicUrls = pic_urls.filter(url => !filesArray.includes(url));
-                console.log('新的urls',updatedPicUrls);
+                // console.log('新的urls', updatedPicUrls);
                 // 更新数据库中相应数据行的 pic_urls 字段
                 const sqlUpdate = 'UPDATE ev_tasks SET pic_urls = ? WHERE title = ? AND name = ?';
                 db.query(sqlUpdate, [JSON.stringify(updatedPicUrls), title, username], (err, result) => {
@@ -65,7 +162,7 @@ exports.remove_pics = (req,res) => {
                         status: 0,
                         message: '删除游记图片成功'
                     });
-                    
+
                 });
             } else {
                 res.status(404).send('Data not found');
@@ -75,13 +172,13 @@ exports.remove_pics = (req,res) => {
 }
 
 exports.add_Task = (req, res) => {
-    console.log('Received file:', req.file);
-    console.log('Received body:', req.body);
+    // console.log('Received file:', req.file);
+    // console.log('Received body:', req.body);
 
     const username = req.body.username;
     const title = req.body.titleValue;
     const text = req.body.textValue;
-    const avatarUrl = 'http://192.168.1.107/public/upload/' + req.file.filename;
+    const avatarUrl = 'http://127.0.0.1:3007/public/upload/' + req.file.filename;
 
 
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
@@ -115,7 +212,7 @@ exports.add_Task = (req, res) => {
                 const existingRecord = results[0];
                 const existingPicUrls = existingRecord.pic_urls || [];
                 existingPicUrls.push(avatarUrl);
-                console.log('existingPicUrls',existingPicUrls);
+                // console.log('existingPicUrls', existingPicUrls);
                 const sqlUpdate = 'UPDATE ev_tasks SET text = ?, pic_urls = ? WHERE title = ? AND name = ?';
                 db.query(sqlUpdate, [text, JSON.stringify(existingPicUrls), title, username], (err, results) => {
                     if (err) {
@@ -187,8 +284,8 @@ exports.rejectById = (req, res) => {
         Id,
         reason
     } = req.body;
-    console.log('id', Id);
-    console.log('reason', reason);
+    // console.log('id', Id);
+    // console.log('reason', reason);
     const sql = `UPDATE ev_tasks SET status = '已拒绝', rejection_reason = ? WHERE Id = ?`;
     db.query(sql, [reason, Id], (err, results) => {
         if (err) {
