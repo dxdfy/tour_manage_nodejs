@@ -72,7 +72,7 @@ exports.getPassTaskCates = async (req, res) => {
             host: '127.0.0.1',
             user: 'root',
             password: 'admin123',
-            database: 'my_db_01',
+            database: 'mydb1',
         });
         const offset = page * count;
         const sql = `select * from ev_tasks where status="已通过" and is_delete=0 order by id asc LIMIT ${offset}, ${count}`;
