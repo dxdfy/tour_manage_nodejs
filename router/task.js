@@ -22,13 +22,19 @@ const storage = multer.diskStorage({
 })
 const upload = multer({ storage: storage })
 
-router.post('/add',upload.single('file'),task_handler.add_Task)
+router.post('/add',upload.single('file'),task_handler.add_update_Task)
+
+router.post('/video',upload.single('file'),task_handler.add_video_Task)
+
+router.post('/update_txt',task_handler.update_task_txt)
 
 router.post('/remove',task_handler.remove_pics)
 
 router.get('/cates',task_handler.getTaskCates)
 
 router.post('/cates',task_handler.getTaskByUser)
+
+router.post('/delete', task_handler.deleteByIdFore)
 
 router.get('/delete/:id', expressJoi(delete_schema),task_handler.deleteById)
 
