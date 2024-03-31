@@ -34,6 +34,8 @@ router.get('/cates', task_handler.getTaskCates)
 
 router.get('/passcates', task_handler.getPassTaskCates)
 
+router.post('/cates', task_handler.getTaskByUser)
+
 router.post('/delete', task_handler.deleteByIdFore)
 
 router.get('/delete/:id', expressJoi(delete_schema), task_handler.deleteById)
