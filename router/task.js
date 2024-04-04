@@ -44,4 +44,6 @@ router.post('/reject', expressJoi(reject_schema), task_handler.rejectById)
 
 router.get('/pass/:id', expressJoi(pass_schema), task_handler.passById)
 
+router.post('/gettaskheight', task_handler.getTaskHeight)
+
 module.exports = router

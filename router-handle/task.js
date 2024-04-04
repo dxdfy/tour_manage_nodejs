@@ -1,6 +1,7 @@
 const db = require('../db/index')
 const fs = require('fs')
 const path = require('path')
+const sharp = require('sharp');
 exports.getTaskCates = (req, res) => {
     const sql = 'select * from ev_tasks order by id asc'
     db.query(sql, (err, results) => {
@@ -62,11 +63,11 @@ exports.getTaskCates = (req, res) => {
 const mysql = require('mysql2/promise');
 
 exports.getPassTaskCates = async (req, res) => {
-    console.log('1')
+    // console.log('1')
     const page = req.query.page; // Default page is 0
     const count = req.query.count; // Default count is 10
-    console.log(page)
-    console.log(count)
+    // console.log(page)
+    // console.log(count)
     try {
         const connection = await mysql.createConnection({
             host: '127.0.0.1',
@@ -94,7 +95,7 @@ exports.getPassTaskCates = async (req, res) => {
                 tasksWithAvatar.push(taskWithAvatar);
             }
         }
-        console.log(tasksWithAvatar)
+        // console.log(tasksWithAvatar)
         // 返回结果
         res.send({
             status: 0,
@@ -132,16 +133,16 @@ exports.getTaskByUser = (req, res) => {
 }
 
 exports.update_task_txt = (req, res) => {
-    console.log('Received txt body:', req.body);
+    // console.log('Received txt body:', req.body);
     const {
         id,
         text,
         title,
     } = req.body;
 
-    console.log(id);
-    console.log(text);
-    console.log(title);
+    // console.log(id);
+    // console.log(text);
+    // console.log(title);
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE id = ?';
     db.query(sqlSelect, id, (err, result) => {
         if (err) {
@@ -174,13 +175,13 @@ exports.update_task_txt = (req, res) => {
 }
 
 exports.remove_pics = (req, res) => {
-    console.log('Received remove body:', req.body);
+    // console.log('Received remove body:', req.body);
     const {
         id,
         files,
     } = req.body;
     const filesArray = files.split(',');
-    console.log('Received fileArray:', filesArray);
+    // console.log('Received fileArray:', filesArray);
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE id = ?';
     db.query(sqlSelect, id, (err, result) => {
         if (err) {
@@ -482,4 +483,75 @@ exports.rejectById = (req, res) => {
     });
 
 }
+// exports.getTaskHeight = (req, res) => async (req, res) => {
+//     try {
+//         console.log('1')
+//         const queryheightlist = req.query.queryheightlist;
+//         console.log(queryheightlist)
+//         // 定义用于存储高度的数组
+//         const heightlist = [];
 
+//         // 并行处理每个图片链接，获取高度
+//         await Promise.all(queryheightlist.map(async (url) => {
+//             // 将URL中的反斜杠替换为斜杠
+//             const newstr = url.replace(/\\/g, '/');
+
+//             // 使用sharp获取图片信息
+//             const metadata = await sharp(newstr).metadata();
+
+//             // 获取图片高度
+//             const imageHeight = metadata.height;
+
+//             // 将高度添加到数组中
+//             heightlist.push(imageHeight);
+//         }));
+
+//         // 返回高度列表
+//         res.json(heightlist);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).send('Error processing images');
+//     }
+// };
+exports.getTaskHeight = async (req, res) => {
+    // console.log(req.body)
+    try {
+        const queryheightlist = JSON.parse(req.body.data);
+        // console.log(queryheightlist)
+        // 定义用于存储高度的数组
+        const heightlist = [];
+
+        // 循环处理每个图片链接
+        // for (const url of queryheightlist) {
+        for (let i = 0; i < queryheightlist.length; i++) {
+            // 将URL中的反斜杠替换为斜杠
+            const newstr = queryheightlist[i].replace(/\\/g, '/');
+            // 使用sharp获取图片信息
+            await sharp(newstr)
+                .metadata()
+                .then(metadata => {
+
+                    const imageHeight = metadata.height;
+                    const imageWidth = metadata.width;
+                    // console.log(newstr)
+                    // console.log(imageHeight)
+                    // console.log(imageWidth)
+                    const height = imageHeight / imageWidth * 150 + 90;
+                    // 将图片高度添加到数组中
+                    heightlist.push(height);
+                    // 判断是否所有图片高度都已获取，如果是则返回数组
+                    if (heightlist.length === queryheightlist.length) {
+                        // console.log(heightlist)
+                        res.json(heightlist);
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    res.status(500).send('Error processing image');
+                });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('Error processing images');
+    }
+};

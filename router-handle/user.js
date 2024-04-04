@@ -6,7 +6,6 @@ const fs = require('fs');
 
 
 exports.login = (req, res) => {
-
     const userinfo = req.body
     // console.log(userinfo)
     const sql = 'select * from ev_users where `username`=?'
@@ -59,11 +58,11 @@ exports.login = (req, res) => {
 exports.register = (req, res) => {
     // console.log('Received file:', req.file);
     // console.log('Received body:', req.body);
-
     const username = req.body.username;
     const password = req.body.password;
     const tempFilePath = req.file.path;
     const avatarUrl = 'http://127.0.0.1:3007/public/upload/' + req.file.filename;
+    // console.log('文件路径为', tempFilePath)
 
     // 将临时文件保存到指定目录
     const savedFilePath = './public/saved/' + req.file.filename;
@@ -88,7 +87,7 @@ exports.register = (req, res) => {
                 const sqlStr = `INSERT INTO ev_users (username,password, avatar) VALUES ('${username}','${secret_password}','${avatarUrl}')`;
                 db.query(sqlStr, [username, secret_password, avatarUrl], (err, result) => {
                     if (err) throw err;
-                    res.json({ path: avatarUrl });
+                    res.json({ status: 0, path: avatarUrl });
                 });
                 // console.log("插入新路径", avatarUrl);
             }
