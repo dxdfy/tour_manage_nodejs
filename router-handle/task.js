@@ -238,7 +238,7 @@ exports.add_video_Task = (req, res) => {
     console.log('Received body:', req.body);
     const title = req.body.titleValue;
     const username = req.body.username;
-    const videoUrl = 'http://192.168.1.102:3007/public/upload/' + req.file.filename;
+    const videoUrl = 'http://192.168.1.104:3007/public/upload/' + req.file.filename;
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
     db.query(sqlSelect, [title, username], (err, results) => {
         if (err) {
@@ -267,9 +267,10 @@ exports.add_video_Task = (req, res) => {
 
             if (results.length > 0) {
                 // 如果存在相同标题和相同用户的记录，则更新
+                const existingTask = results[0];
                 const existingVideoUrls = [];
                 existingVideoUrls.push(videoUrl);
-                console.log('existingVideoUrls', existingVideoUrls);
+                console.log('existingTask', existingTask);
                 const sqlUpdate = 'UPDATE ev_tasks SET  video_urls = ? WHERE title = ? AND name = ?';
                 db.query(sqlUpdate, [JSON.stringify(existingVideoUrls), title, username], (err, results) => {
                     if (err) {
@@ -278,7 +279,21 @@ exports.add_video_Task = (req, res) => {
                             message: err.message
                         });
                     }
-
+                    const oldVideoUrls = existingTask.video_urls || '[]';
+                    const oldVideoUrl = oldVideoUrls[0]; // 假设只有一个旧视频文件
+                    console.log('oldVideoUrl', oldVideoUrl);
+                    if (oldVideoUrls.length === 1) {
+                        const filename = oldVideoUrl.split('/').pop();
+                        const filePath = path.join(__dirname, '..', 'public', 'upload', filename);
+                        fs.unlink(filePath, err => {
+                            if (err) {
+                                console.error('Error deleting file:', err);
+                                // 可能需要处理删除失败的情况
+                            } else {
+                                console.log('Old video deleted successfully:', filePath);
+                            }
+                        });
+                    }
                     return res.send({
                         status: 0,
                         message: '新增游记视频成功'
@@ -302,7 +317,7 @@ exports.add_update_Task = (req, res) => {
     const title = req.body.titleValue;
     const text = req.body.textValue;
     const is_add = req.body.is_add;
-    const avatarUrl = 'http://192.168.1.102:3007/public/upload/' + req.file.filename;
+    const avatarUrl = 'http://192.168.1.104:3007/public/upload/' + req.file.filename;
     if (is_add === 'true') {
         const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
         db.query(sqlSelect, [title, username], (err, results) => {
