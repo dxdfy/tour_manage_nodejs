@@ -40,10 +40,10 @@ router.post('/delete', task_handler.deleteByIdFore)
 
 router.get('/delete/:id', expressJoi(delete_schema), task_handler.deleteById)
 
-router.get('/delete/:id', expressJoi(delete_schema), task_handler.deleteById)
-
 router.post('/reject', expressJoi(reject_schema), task_handler.rejectById)
 
 router.get('/pass/:id', expressJoi(pass_schema), task_handler.passById)
+
+router.post('/deleteVideo', task_handler.deleteVideo)
 
 module.exports = router

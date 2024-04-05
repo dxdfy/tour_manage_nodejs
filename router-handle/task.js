@@ -237,7 +237,7 @@ exports.add_video_Task = (req, res) => {
     console.log('Received body:', req.body);
     const title = req.body.titleValue;
     const username = req.body.username;
-    const videoUrl = 'http://192.168.1.104:3007/public/upload/' + req.file.filename;
+    const videoUrl = 'http://192.168.1.108:3007/public/upload/' + req.file.filename;
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
     db.query(sqlSelect, [title, username], (err, results) => {
         if (err) {
@@ -308,6 +308,24 @@ exports.add_video_Task = (req, res) => {
     });
 }
 
+exports.deleteVideo = (req, res) => {
+    console.log('Received 删除视频', req.body);
+    const id = req.body.id;
+    const sql = `update ev_tasks set video_urls = ? where id=?`
+    const existingVideoUrls = [];
+    db.query(sql, [JSON.stringify(existingVideoUrls),id], (err, results) => {
+        if (err) return res.send({
+            status: 1,
+            message: err.message
+        })
+        res.send({
+            status: 0,
+            message: '删除视频成功'
+        })
+    })
+
+}
+
 exports.add_update_Task = (req, res) => {
     console.log('Received file:', req.file);
     console.log('Received body:', req.body);
@@ -316,7 +334,7 @@ exports.add_update_Task = (req, res) => {
     const title = req.body.titleValue;
     const text = req.body.textValue;
     const is_add = req.body.is_add;
-    const avatarUrl = 'http://192.168.1.104:3007/public/upload/' + req.file.filename;
+    const avatarUrl = 'http://192.168.1.108:3007/public/upload/' + req.file.filename;
     if (is_add === 'true') {
         const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
         db.query(sqlSelect, [title, username], (err, results) => {
@@ -497,3 +515,4 @@ exports.rejectById = (req, res) => {
     });
 
 }
+
