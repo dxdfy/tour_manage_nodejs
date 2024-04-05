@@ -46,4 +46,6 @@ router.get('/pass/:id', expressJoi(pass_schema), task_handler.passById)
 
 router.post('/deleteVideo', task_handler.deleteVideo)
 
+router.post('/gettaskheight', task_handler.getTaskHeight)
+
 module.exports = router
