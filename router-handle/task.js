@@ -115,7 +115,21 @@ exports.getPassTaskCates = async (req, res) => {
 
 
 
-
+exports.getPassTaskByTaskId = (req, res) => {
+    const id = req.body.id;
+    const sql = 'select * from ev_tasks where id = ? AND is_delete = 0'
+    db.query(sql, id, (err, results) => {
+        if (err) return res.send({
+            status: 1,
+            message: err.message
+        })
+        res.send({
+            status: 0,
+            message: '获取用户游记成功',
+            data: results,
+        })
+    })
+}
 
 exports.getTaskByUser = (req, res) => {
     const username = req.body.username;
@@ -382,12 +396,7 @@ exports.add_update_Task = (req, res) => {
 
                 if (results.length > 0) {
                     // 如果存在相同标题和相同用户的记录,且不是第一次上传，而是编辑，则更新数据
-                    if (is_add === 'true') {
-                        return res.send({
-                            status: 0,
-                            message: '已有该标题的游记,请前往我的游记进行编辑'
-                        });
-                    } else {
+                    {
                         const existingRecord = results[0];
                         const existingPicUrls = existingRecord.pic_urls || [];
                         existingPicUrls.push(avatarUrl);
@@ -677,3 +686,51 @@ exports.update_password = (req, res) => {
         }
     });
 }
+exports.getMyComments = (req, res) => {
+    const username = req.body.username;
+    const sqlStr = 'SELECT comments FROM ev_tasks WHERE JSON_CONTAINS(comments, ? , "$")';
+
+    // 查询数据库
+    db.query(sqlStr, [`{"username": "${username}"}`], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Database error');
+        }
+
+        // 返回查询结果
+        res.json(results);
+    });
+};
+
+exports.getCommentsToMe = (req, res) => {
+    const username = req.body.username;
+    const sqlQuery = 'SELECT id, comments FROM ev_tasks WHERE name = ? AND is_delete = 0';
+
+    // 查询数据库
+    db.query(sqlQuery, [username], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+
+        // 存储所有评论的数组
+        let allComments = [];
+
+        // 遍历结果，提取评论和行 ID
+        results.forEach(row => {
+            const id = row.id;
+            const comments = row.comments;
+            // console.log('id',id);
+            // console.log('comments',row.comments);
+            if (comments && Array.isArray(comments)) {
+                // 如果该行有评论，则将其添加到 allComments 数组中
+                const commentsWithId = comments.map(comment => ({ id, ...comment })); // 添加行 ID 到每条评论
+                allComments = allComments.concat(commentsWithId);
+            }
+        });
+
+        // 返回所有评论
+        console.log('allcomments', allComments);
+        res.json(allComments);
+    });
+};
