@@ -2,6 +2,7 @@ const db = require('../db/index')
 const fs = require('fs')
 const path = require('path')
 const sharp = require('sharp');
+const bcrypt = require('bcryptjs')
 exports.getTaskCates = (req, res) => {
     const sql = 'select * from ev_tasks order by id asc'
     db.query(sql, (err, results) => {
@@ -119,6 +120,22 @@ exports.getPassTaskCates = async (req, res) => {
 exports.getTaskByUser = (req, res) => {
     const username = req.body.username;
     const sql = 'select * from ev_tasks where name = ? AND is_delete = 0'
+    db.query(sql, username, (err, results) => {
+        if (err) return res.send({
+            status: 1,
+            message: err.message
+        })
+        res.send({
+            status: 0,
+            message: '获取用户游记成功',
+            data: results,
+        })
+    })
+}
+
+exports.getPassTaskByUser = (req, res) => {
+    const username = req.body.username;
+    const sql = 'select * from ev_tasks where name = ? AND status = "已通过" AND is_delete = 0 '
     db.query(sql, username, (err, results) => {
         if (err) return res.send({
             status: 1,
@@ -314,7 +331,7 @@ exports.deleteVideo = (req, res) => {
     const id = req.body.id;
     const sql = `update ev_tasks set video_urls = ? where id=?`
     const existingVideoUrls = [];
-    db.query(sql, [JSON.stringify(existingVideoUrls),id], (err, results) => {
+    db.query(sql, [JSON.stringify(existingVideoUrls), id], (err, results) => {
         if (err) return res.send({
             status: 1,
             message: err.message
@@ -588,3 +605,75 @@ exports.getTaskHeight = async (req, res) => {
         res.status(500).send('Error processing images');
     }
 };
+
+const replaceUrls = (urls) => {
+    return urls.map(url => url.replace(/http:\/\/[^:]*:3007\//, 'http://192.168.1.108:3007/'));
+};
+
+exports.modifyUrlsInDatabase = () => {
+    const sqlSelect = 'SELECT * FROM ev_tasks';
+    db.query(sqlSelect, (err, results) => {
+        if (err) {
+            console.error('Error selecting data from database:', err);
+            return;
+        }
+        if (results.length === 0) {
+            console.log('No data found in the database.');
+            return;
+        }
+
+        // 对每条记录进行处理
+        results.forEach(task => {
+            const id = task.id;
+            const picUrls = task.pic_urls || [];
+            const videoUrls = task.video_urls || [];
+
+            // 替换 pic_urls 中的 URL
+            const replacedPicUrls = replaceUrls(picUrls);
+            // 替换 video_urls 中的 URL
+            const replacedVideoUrls = replaceUrls(videoUrls);
+
+            // 更新数据库中的记录
+            const sqlUpdate = 'UPDATE ev_tasks SET pic_urls = ?, video_urls = ? WHERE id = ?';
+            db.query(sqlUpdate, [JSON.stringify(replacedPicUrls), JSON.stringify(replacedVideoUrls), id], (err, results) => {
+                if (err) {
+                    console.error('Error updating data in database:', err);
+                } else {
+                    console.log('Data updated successfully for task with ID:', id);
+                }
+            });
+        });
+    });
+};
+
+exports.update_password = (req, res) => {
+    console.log('password', req.body);
+    const username = req.body.username;
+    const password = req.body.password;
+    const sqlStr = 'SELECT * FROM ev_users WHERE username = ?';
+    // 查询数据库
+    db.query(sqlStr, [username], function (err, result) {
+        if (err) {
+            console.error(err);
+            res.status(500).send('Database error');
+        } else {
+            // 检查是否有匹配的openId
+            if (result.length === 0) {
+                return res.send({
+                    status: 1,
+                    message: '用户名不存在，出错！'
+                })
+            } else {
+                const secret_password = bcrypt.hashSync(password, 10);
+                const updatePasswordSql = 'UPDATE ev_users SET password = ? WHERE username = ?';
+                db.query(updatePasswordSql, [secret_password, username], (err, result) => {
+                    if (err) {
+                        console.error(err);
+                        return res.status(500).send('Database error');
+                    }
+                    return res.send({ status: 0, message: '密码更新成功' });
+                });
+            }
+        }
+    });
+}

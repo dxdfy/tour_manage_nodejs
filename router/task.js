@@ -36,6 +36,8 @@ router.get('/passcates', task_handler.getPassTaskCates)
 
 router.post('/cates', task_handler.getTaskByUser)
 
+router.post('/passTaskByUser', task_handler.getPassTaskByUser)
+
 router.post('/delete', task_handler.deleteByIdFore)
 
 router.get('/delete/:id', expressJoi(delete_schema), task_handler.deleteById)
@@ -47,5 +49,8 @@ router.get('/pass/:id', expressJoi(pass_schema), task_handler.passById)
 router.post('/deleteVideo', task_handler.deleteVideo)
 
 router.post('/gettaskheight', task_handler.getTaskHeight)
+
+router.post('/update_password', task_handler.update_password)
+
 
 module.exports = router
