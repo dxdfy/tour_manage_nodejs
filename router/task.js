@@ -48,4 +48,7 @@ router.get('/pass/:id', expressJoi(pass_schema), task_handler.passById)
 
 router.post('/gettaskheight', task_handler.getTaskHeight)
 
+router.post('/addcomment', task_handler.addComment)
+
+router.get('/getcomments', task_handler.getComments)
 module.exports = router

@@ -18,13 +18,16 @@ exports.login = (req, res) => {
         if (!compare) {
             return res.send({ status: 1, message: '登录失败！密码错误' })
         }
-        const user = { ...results[0], password: '', user_pic: '' }
+        // const user = { ...results[0], password: '', user_pic: '' }
+        const user = { ...results[0], password: '', avatar: '' }
         const tokenStr = jwt.sign(user, config.jwtSecretKey, { expiresIn: config.expiresIn })
         // console.log('ok')
         res.send({
             status: 0,
             message: '登录成功',
-            token: 'Bearer ' + tokenStr
+            token: 'Bearer ' + tokenStr,
+            username: results[0].username,
+            avatar: results[0].avatar
         })
 
     })
@@ -61,7 +64,7 @@ exports.register = (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     const tempFilePath = req.file.path;
-    const avatarUrl = 'http://127.0.0.1:3007/public/upload/' + req.file.filename;
+    const avatarUrl = 'http://192.168.1.105:3007/public/upload/' + req.file.filename;
     // console.log('文件路径为', tempFilePath)
 
     // 将临时文件保存到指定目录

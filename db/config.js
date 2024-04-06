@@ -1,4 +1,4 @@
-module.exports={
-    jwtSecretKey:'yuyuc',
-    expiresIn:'10h',
+module.exports = {
+    jwtSecretKey: 'yuyuc',
+    expiresIn: '10h',
 }

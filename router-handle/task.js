@@ -78,6 +78,7 @@ exports.getPassTaskCates = async (req, res) => {
         const offset = page * count;
         const sql = `select * from ev_tasks where status="已通过" and is_delete=0 order by id asc LIMIT ${offset}, ${count}`;
         const [tasksResults] = await connection.query(sql);
+        // const [tasksResults] = await db.query(sql);
         // 用于存储所有查询到的任务及对应的 avatar
         const tasksWithAvatar = [];
 
@@ -96,12 +97,14 @@ exports.getPassTaskCates = async (req, res) => {
             }
         }
         // console.log(tasksWithAvatar)
+        connection.end();
         // 返回结果
         res.send({
             status: 0,
             message: '获取任务成功',
             data: tasksWithAvatar,
         });
+
     } catch (error) {
         console.error('查询数据库失败：', error.message);
         res.send({
@@ -238,7 +241,7 @@ exports.add_video_Task = (req, res) => {
     console.log('Received body:', req.body);
     const title = req.body.titleValue;
     const username = req.body.username;
-    const videoUrl = 'http://192.168.1.104:3007/public/upload/' + req.file.filename;
+    const videoUrl = 'http://192.168.1.105:3007/public/upload/' + req.file.filename;
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
     db.query(sqlSelect, [title, username], (err, results) => {
         if (err) {
@@ -317,7 +320,7 @@ exports.add_update_Task = (req, res) => {
     const title = req.body.titleValue;
     const text = req.body.textValue;
     const is_add = req.body.is_add;
-    const avatarUrl = 'http://192.168.1.104:3007/public/upload/' + req.file.filename;
+    const avatarUrl = 'http://192.168.1.105:3007/public/upload/' + req.file.filename;
     if (is_add === 'true') {
         const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
         db.query(sqlSelect, [title, username], (err, results) => {
@@ -570,3 +573,79 @@ exports.getTaskHeight = async (req, res) => {
         res.status(500).send('Error processing images');
     }
 };
+
+exports.addComment = async (req, res) => {
+    // const connection = await mysql.createConnection({
+    //     host: '127.0.0.1',
+    //     user: 'root',
+    //     password: 'admin123',
+    //     database: 'my_db_01',
+    // });
+
+    console.log(req.body)
+    const id = req.body.id;
+    const comment = JSON.parse(req.body.comment);
+    console.log(id)
+    console.log(comment)
+
+    const sql = 'select * from ev_tasks where id = ?';
+    db.query(sql, [id], (error, results) => {
+        if (error) {
+            console.error('Error updating comment:', error);
+            res.send({
+                status: 1,
+                message: error
+            })
+            return;
+        }
+        console.log('result', results[0])
+        // 获取原始评论数组
+        const originalComments = results[0].comments !== null ? results[0].comments : [];
+
+        // 添加新评论
+        originalComments.push(comment);
+
+        // 将数组转换回 JSON 字符串
+        const updatedCommentsJSON = JSON.stringify(originalComments);
+
+        // 更新数据库中的 comments 字段
+        const updateSQL = 'update ev_tasks set comments = ? where id = ?';
+        db.query(updateSQL, [updatedCommentsJSON, id], (updateError, updateResults) => {
+            if (updateError) {
+                console.error('Error updating comments:', updateError);
+                res.send({
+                    status: 1,
+                    message: updateError
+                })
+                return;
+            }
+            console.log('Comments updated successfully.');
+            res.send({
+                status: 0,
+                message: 'success'
+            })
+        });
+    });
+
+}
+exports.getComments = (req, res) => {
+    const id = req.query.id; // 假设通过路由参数获取id
+    // 查询数据库
+    const sql = 'SELECT comments FROM ev_tasks WHERE id = ?';
+    db.query(sql, id, (error, results) => {
+        if (error) {
+            console.error('Error fetching comments:', error);
+            res.status(500).json({ status: 1, message: 'Internal Server Error' });
+            return;
+        }
+
+        // 如果找到了记录
+        if (results.length === 1) {
+            console.log(results[0].comments)
+            const comments = results[0].comments; // 解析JSON字段
+            res.status(200).json({ status: 0, data: comments });
+        } else {
+            res.status(404).json({ status: 1, message: 'Comments not found' });
+        }
+    });
+}

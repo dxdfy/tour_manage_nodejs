@@ -12,7 +12,6 @@ const storage = multer.diskStorage({
         cb(null, Date.now() + '-' + file.originalname)
     }
 })
-
 const upload = multer({ storage: storage })
 router.post('/login', user_handler.login)
 router.post('/register', upload.single('file'), user_handler.register)
