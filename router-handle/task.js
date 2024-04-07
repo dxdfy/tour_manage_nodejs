@@ -272,11 +272,7 @@ exports.add_video_Task = (req, res) => {
     console.log('Received body:', req.body);
     const title = req.body.titleValue;
     const username = req.body.username;
-<<<<<<< HEAD
-    const videoUrl = 'http://192.168.1.105:3007/public/upload/' + req.file.filename;
-=======
-    const videoUrl = 'http://192.168.1.108:3007/public/upload/' + req.file.filename;
->>>>>>> 63a5f47b51fcad22e01b2ea45adb0981b717ea3e
+    const videoUrl = 'http://192.168.1.103:3007/public/upload/' + req.file.filename;
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
     db.query(sqlSelect, [title, username], (err, results) => {
         if (err) {
@@ -373,11 +369,7 @@ exports.add_update_Task = (req, res) => {
     const title = req.body.titleValue;
     const text = req.body.textValue;
     const is_add = req.body.is_add;
-<<<<<<< HEAD
-    const avatarUrl = 'http://192.168.1.105:3007/public/upload/' + req.file.filename;
-=======
-    const avatarUrl = 'http://192.168.1.108:3007/public/upload/' + req.file.filename;
->>>>>>> 63a5f47b51fcad22e01b2ea45adb0981b717ea3e
+    const avatarUrl = 'http://192.168.1.103:3007/public/upload/' + req.file.filename;
     if (is_add === 'true') {
         const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
         db.query(sqlSelect, [title, username], (err, results) => {
@@ -626,7 +618,6 @@ exports.getTaskHeight = async (req, res) => {
     }
 };
 
-<<<<<<< HEAD
 exports.addComment = async (req, res) => {
     // const connection = await mysql.createConnection({
     //     host: '127.0.0.1',
@@ -702,9 +693,8 @@ exports.getComments = (req, res) => {
         }
     });
 }
-=======
 const replaceUrls = (urls) => {
-    return urls.map(url => url.replace(/http:\/\/[^:]*:3007\//, 'http://192.168.1.108:3007/'));
+    return urls.map(url => url.replace(/http:\/\/[^:]*:3007\//, 'http://192.168.1.103:3007/'));
 };
 
 exports.modifyUrlsInDatabase = () => {
@@ -822,4 +812,3 @@ exports.getCommentsToMe = (req, res) => {
         res.json(allComments);
     });
 };
->>>>>>> 63a5f47b51fcad22e01b2ea45adb0981b717ea3e

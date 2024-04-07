@@ -52,16 +52,14 @@ router.post('/deleteVideo', task_handler.deleteVideo)
 
 router.post('/gettaskheight', task_handler.getTaskHeight)
 
-<<<<<<< HEAD
 router.post('/addcomment', task_handler.addComment)
 
 router.get('/getcomments', task_handler.getComments)
-=======
+
 router.post('/update_password', task_handler.update_password)
 
 router.post('/myComments', task_handler.getMyComments)
 
 router.post('/commentsToMe', task_handler.getCommentsToMe)
 
->>>>>>> 63a5f47b51fcad22e01b2ea45adb0981b717ea3e
 module.exports = router
