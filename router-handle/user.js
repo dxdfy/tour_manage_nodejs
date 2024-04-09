@@ -22,7 +22,7 @@ exports.login = (req, res) => {
         // const user = { ...results[0], password: '', user_pic: '' }
         const user = { ...results[0], password: '', avatar: '' }
         const tokenStr = jwt.sign(user, config.jwtSecretKey, { expiresIn: config.expiresIn })
-        modifyUrlsInDatabase();
+        // modifyUrlsInDatabase();
         // console.log('ok')
         res.send({
             status: 0,
@@ -66,7 +66,7 @@ exports.register = (req, res) => {
     const username = req.body.username;
     const password = req.body.password;
     const tempFilePath = req.file.path;
-    const avatarUrl = 'http://192.168.1.108:3007/public/upload/' + req.file.filename;
+    const avatarUrl = config.baseUrl + req.file.filename;
     // console.log('文件路径为', tempFilePath)
 
     // 将临时文件保存到指定目录
@@ -103,7 +103,7 @@ exports.register = (req, res) => {
 exports.updateAvatar = (req, res) => {
     console.log('updateavatar',req.body);
     const username = req.body.username;
-    const avatarUrl = 'http://192.168.1.108:3007/public/upload/' + req.file.filename;
+    const avatarUrl = config.baseUrl + req.file.filename;
 
     // 将临时文件保存到指定目录
     const savedFilePath = './public/saved/' + req.file.filename;

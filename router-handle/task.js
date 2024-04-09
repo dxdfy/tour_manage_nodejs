@@ -3,6 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const sharp = require('sharp');
 const bcrypt = require('bcryptjs')
+const config = require('../config');
 exports.getTaskCates = (req, res) => {
     const sql = 'select * from ev_tasks order by id asc'
     db.query(sql, (err, results) => {
@@ -272,7 +273,7 @@ exports.add_video_Task = (req, res) => {
     console.log('Received body:', req.body);
     const title = req.body.titleValue;
     const username = req.body.username;
-    const videoUrl = 'http://192.168.1.103:3007/public/upload/' + req.file.filename;
+    const videoUrl = config.baseUrl + req.file.filename;
     const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
     db.query(sqlSelect, [title, username], (err, results) => {
         if (err) {
@@ -369,7 +370,7 @@ exports.add_update_Task = (req, res) => {
     const title = req.body.titleValue;
     const text = req.body.textValue;
     const is_add = req.body.is_add;
-    const avatarUrl = 'http://192.168.1.103:3007/public/upload/' + req.file.filename;
+    const avatarUrl = config.baseUrl + req.file.filename;
     if (is_add === 'true') {
         const sqlSelect = 'SELECT * FROM ev_tasks WHERE title = ? AND name != ?';
         db.query(sqlSelect, [title, username], (err, results) => {
@@ -679,7 +680,10 @@ exports.getComments = (req, res) => {
     db.query(sql, id, (error, results) => {
         if (error) {
             console.error('Error fetching comments:', error);
-            res.status(500).json({ status: 1, message: 'Internal Server Error' });
+            res.status(500).json({
+                status: 1,
+                message: 'Internal Server Error'
+            });
             return;
         }
 
@@ -687,14 +691,20 @@ exports.getComments = (req, res) => {
         if (results.length === 1) {
             console.log(results[0].comments)
             const comments = results[0].comments; // 解析JSON字段
-            res.status(200).json({ status: 0, data: comments });
+            res.status(200).json({
+                status: 0,
+                data: comments
+            });
         } else {
-            res.status(404).json({ status: 1, message: 'Comments not found' });
+            res.status(404).json({
+                status: 1,
+                message: 'Comments not found'
+            });
         }
     });
 }
 const replaceUrls = (urls) => {
-    return urls.map(url => url.replace(/http:\/\/[^:]*:3007\//, 'http://192.168.1.103:3007/'));
+    return urls.map(url => url.replace(/http:\/\/[^:]*:3007\//, config.baseApi));
 };
 
 exports.modifyUrlsInDatabase = () => {
@@ -708,7 +718,27 @@ exports.modifyUrlsInDatabase = () => {
             console.log('No data found in the database.');
             return;
         }
-
+        results.forEach(task => {
+            const taskId = task.id;
+            const comments = task.comments || null;
+            if(comments !==null){
+                const updatedComments = comments.map(comment => {
+                    if (comment.avatar) {
+                        comment.avatar = comment.avatar.replace(/http:\/\/[^:]*:3007\//, config.baseApi);
+                    }
+                    return comment;
+                });
+    
+                const sqlUpdateComments = 'UPDATE ev_tasks SET comments = ? WHERE id = ?';
+                db.query(sqlUpdateComments, [JSON.stringify(updatedComments), taskId], (err, results) => {
+                    if (err) {
+                        console.error('在 ev_tasks 表中更新评论时出错：', err);
+                    } else {
+                        console.log('ID 为', taskId, '的任务评论已成功更新。');
+                    }
+                });
+            }
+        });
         // 对每条记录进行处理
         results.forEach(task => {
             const id = task.id;
@@ -729,6 +759,36 @@ exports.modifyUrlsInDatabase = () => {
                     console.log('Data updated successfully for task with ID:', id);
                 }
             });
+        });
+    });
+    const sqlSelect2 = 'SELECT * FROM ev_users';
+    db.query(sqlSelect2, (err, results) => {
+        if (err) {
+            console.error('Error selecting data from database:', err);
+            return;
+        }
+        if (results.length === 0) {
+            console.log('No data found in the database.');
+            return;
+        }
+
+        // 对每条记录进行处理
+        results.forEach(user => {
+            const username = user.username;
+            const avatar = user.avatar; // Assuming avatar field exists in user
+            if (avatar !== null) {
+                const replacedAvatar = avatar.replace(/http:\/\/[^:]*:3007\//, config.baseApi);
+
+                // 更新数据库中的记录
+                const sqlUpdateUser = 'UPDATE ev_users SET avatar = ? WHERE username = ?';
+                db.query(sqlUpdateUser, [replacedAvatar, username], (err, results) => {
+                    if (err) {
+                        console.error('Error updating avatar in database:', err);
+                    } else {
+                        console.log('Avatar updated successfully for user with username:', username);
+                    }
+                });
+            }
         });
     });
 };
@@ -758,7 +818,10 @@ exports.update_password = (req, res) => {
                         console.error(err);
                         return res.status(500).send('Database error');
                     }
-                    return res.send({ status: 0, message: '密码更新成功' });
+                    return res.send({
+                        status: 0,
+                        message: '密码更新成功'
+                    });
                 });
             }
         }
@@ -788,7 +851,9 @@ exports.getCommentsToMe = (req, res) => {
     db.query(sqlQuery, [username], (err, results) => {
         if (err) {
             console.error(err);
-            return res.status(500).json({ error: 'Database error' });
+            return res.status(500).json({
+                error: 'Database error'
+            });
         }
 
         // 存储所有评论的数组
@@ -802,7 +867,10 @@ exports.getCommentsToMe = (req, res) => {
             // console.log('comments',row.comments);
             if (comments && Array.isArray(comments)) {
                 // 如果该行有评论，则将其添加到 allComments 数组中
-                const commentsWithId = comments.map(comment => ({ id, ...comment })); // 添加行 ID 到每条评论
+                const commentsWithId = comments.map(comment => ({
+                    id,
+                    ...comment
+                })); // 添加行 ID 到每条评论
                 allComments = allComments.concat(commentsWithId);
             }
         });
